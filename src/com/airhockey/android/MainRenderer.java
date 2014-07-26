@@ -21,41 +21,43 @@ public class MainRenderer implements Renderer
 	
 	private float[] mTableVertices = 
 		{
-			// triangle 1
-			-0.5f, -0.5f, 
-			 0.5f,  0.5f, 
-			-0.5f,  0.5f,
+			// order of coordinates: X Y R G B
 			
-			// triangle 2
-			-0.5f, -0.5f, 
-			 0.5f, -0.5f,
-			 0.5f,  0.5f,
+			// triangle fan
+			 0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
+			-0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
+			 0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
+			 0.5f,  0.5f, 0.7f, 0.7f, 0.7f,
+			-0.5f,  0.5f, 0.7f, 0.7f, 0.7f,
+			-0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
 			
 			// line 1
-			-0.5f, 0f,
-			 0.5f, 0f,
+			-0.5f, 0f, 1.0f, 0.0f, 0.0f,
+			 0.5f, 0f, 1.0f, 0.0f, 0.0f,
 			
 			// mallets
-			0f, -0.25f,
-			0f,  0.25f,
+			 0.0f, -0.25f, 0.0f, 0.0f, 1.0f,
+			 0.0f,  0.25f, 1.0f, 0.0f, 0.0f,
 			
 			// puck
-			0f, 0f,
+			 0.0f,  0.0f, 1.0f, 1.0f, 0.0f,
 			
 			// border
-			-0.5f, -0.5f,
-			 0.5f, -0.5f,
-			 0.5f,  0.5f,
-			-0.5f,  0.5f
+			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+			 0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
+			-0.5f,  0.5f, 0.0f, 1.0f, 0.0f
 			 
 		};
-	
-	private static final String UNIFORM_COLOR = "u_Color";
-	private int mUniformColorLocation;
 	
 	private static final int POSITION_COMPONENT_COUNT = 2;
 	private static final String ATTRIBUTE_POSITION = "a_Position";
 	private int mAttributePositionLocation;
+	
+	private static final int COLOR_COMPONENT_COUNT = 3;
+	private static final int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
+	private static final String ATTRIBUTE_COLOR = "a_Color";
+	private int mAttributeColorLocation;
 	
 	private final FloatBuffer mVertextData;
 	private final Context mContext;
@@ -80,13 +82,17 @@ public class MainRenderer implements Renderer
 		
 		if(createGLProgram())
 		{
-			mUniformColorLocation = GLES20.glGetUniformLocation(mProgramID, UNIFORM_COLOR);
-			mAttributePositionLocation = GLES20.glGetAttribLocation(mProgramID, ATTRIBUTE_POSITION);
-			
 			mVertextData.position(0);
+			mAttributePositionLocation = GLES20.glGetAttribLocation(mProgramID, ATTRIBUTE_POSITION);
 			GLES20.glVertexAttribPointer(mAttributePositionLocation, POSITION_COMPONENT_COUNT, 
-					GLES20.GL_FLOAT, false, 0, mVertextData);
+					GLES20.GL_FLOAT, false, STRIDE, mVertextData);
 			GLES20.glEnableVertexAttribArray(mAttributePositionLocation);
+			
+			mVertextData.position(POSITION_COMPONENT_COUNT);
+			mAttributeColorLocation = GLES20.glGetAttribLocation(mProgramID, ATTRIBUTE_COLOR);
+			GLES20.glVertexAttribPointer(mAttributeColorLocation, COLOR_COMPONENT_COUNT,
+					GLES20.GL_FLOAT, false, STRIDE, mVertextData);
+			GLES20.glEnableVertexAttribArray(mAttributeColorLocation);
 		}
 	}
 	
@@ -127,27 +133,21 @@ public class MainRenderer implements Renderer
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
 		// draw the table
-		GLES20.glUniform4f(mUniformColorLocation, 1.0f, 1.0f, 1.0f, 1.0f); //white
-		GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 6);
 		
 		// draw the divider line
-		GLES20.glUniform4f(mUniformColorLocation, 1.0f, 0.0f, 0.0f, 1.0f); //red
 		GLES20.glDrawArrays(GLES20.GL_LINES, 6, 2);
 		
 		// draw the first mallet
-		GLES20.glUniform4f(mUniformColorLocation, 0.0f, 0.0f, 1.0f, 1.0f); //blue
 		GLES20.glDrawArrays(GLES20.GL_POINTS, 8, 1);
 		
 		// draw the second mallet
-		GLES20.glUniform4f(mUniformColorLocation, 1.0f, 0.0f, 0.0f, 1.0f); //red
 		GLES20.glDrawArrays(GLES20.GL_POINTS, 9, 1);
 		
 		// draw the second puck
-		GLES20.glUniform4f(mUniformColorLocation, 1.0f, 1.0f, 0.0f, 1.0f); //yellow
 		GLES20.glDrawArrays(GLES20.GL_POINTS, 10, 1);
 		
 		// draw the second border
-		GLES20.glUniform4f(mUniformColorLocation, 0.0f, 1.0f, 0.0f, 1.0f); //green
 		GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 11, 4);
 	}
 }
