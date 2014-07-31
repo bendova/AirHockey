@@ -8,6 +8,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import com.airhockey.android.util.Logger;
+import com.airhockey.android.util.MatrixHelper;
 import com.airhockey.android.util.ShaderHelper;
 import com.airhockey.android.util.TextResourceReader;
 
@@ -22,35 +23,35 @@ public class MainRenderer implements Renderer
 	
 	private float[] mTableVertices = 
 		{
-			// order of coordinates: X, Y, Z, W, R, G, B
+			// order of coordinates: X, Y, R, G, B
 			
 			// triangle fan
-			 0.0f,  0.0f, 0.0f, 1.5f, 1.0f, 1.0f, 1.0f,
-			-0.5f, -0.8f, 0.0f, 1.0f, 0.7f, 0.7f, 0.7f,
-			 0.5f, -0.8f, 0.0f, 1.0f, 0.7f, 0.7f, 0.7f,
-			 0.5f,  0.8f, 0.0f, 2.0f, 0.7f, 0.7f, 0.7f,
-			-0.5f,  0.8f, 0.0f, 2.0f, 0.7f, 0.7f, 0.7f,
-			-0.5f, -0.8f, 0.0f, 1.0f, 0.7f, 0.7f, 0.7f,
+			 0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
+			-0.5f, -0.8f, 0.7f, 0.7f, 0.7f,
+			 0.5f, -0.8f, 0.7f, 0.7f, 0.7f,
+			 0.5f,  0.8f, 0.7f, 0.7f, 0.7f,
+			-0.5f,  0.8f, 0.7f, 0.7f, 0.7f,
+			-0.5f, -0.8f, 0.7f, 0.7f, 0.7f,
 			
 			// line 1
-			-0.5f, 0.0f, 0.0f, 1.5f, 1.0f, 0.0f, 0.0f,
-			 0.5f, 0.0f, 0.0f, 1.5f, 1.0f, 0.0f, 0.0f,
+			-0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+			 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
 			
 			// mallets
-			 0.0f, -0.4f, 0.0f, 1.25f, 0.0f, 0.0f, 1.0f,
-			 0.0f,  0.4f, 0.0f, 1.75f, 1.0f, 0.0f, 0.0f,
+			 0.0f, -0.4f, 0.0f, 0.0f, 1.0f,
+			 0.0f,  0.4f, 1.0f, 0.0f, 0.0f,
 			
 			// puck
-			 0.0f,  0.0f, 0.0f, 1.5f, 1.0f, 1.0f, 0.0f,
+			 0.0f,  0.0f, 1.0f, 1.0f, 0.0f,
 			
 			// border
-			-0.5f, -0.8f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-			 0.5f, -0.8f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-			 0.5f,  0.8f, 0.0f, 2.0f, 0.0f, 1.0f, 0.0f,
-			-0.5f,  0.8f, 0.0f, 2.0f, 0.0f, 1.0f, 0.0f
+			-0.5f, -0.8f, 0.0f, 1.0f, 0.0f,
+			 0.5f, -0.8f, 0.0f, 1.0f, 0.0f,
+			 0.5f,  0.8f, 0.0f, 1.0f, 0.0f,
+			-0.5f,  0.8f, 0.0f, 1.0f, 0.0f
 		};
 	
-	private static final int POSITION_COMPONENT_COUNT = 4;
+	private static final int POSITION_COMPONENT_COUNT = 2;
 	private static final String ATTRIBUTE_POSITION = "a_Position";
 	private int mAttributePositionLocation;
 	
@@ -62,6 +63,8 @@ public class MainRenderer implements Renderer
 	private static final String UNIFORM_MATRIX = "u_Matrix";
 	private final float[] mProjectionMatrix = new float[16];
 	private int mUniformMatrixLocation;
+	
+	private final float[] mModelMatrix = new float[16];
 	
 	private final FloatBuffer mVertextData;
 	private final Context mContext;
@@ -132,17 +135,16 @@ public class MainRenderer implements Renderer
 	{
 		GLES20.glViewport(0, 0, width, height);
 		
-		final float aspectRatio = (width > height) ? 
-				((float) width / (float) height) :
-				((float) height / (float) width);
-		if(width > height) // landscape
-		{
-			Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f);
-		}
-		else // portrait
-		{
-			Matrix.orthoM(mProjectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
-		}
+		float aspectRatio = (float) width / (float) height;
+		MatrixHelper.perspectiveM(mProjectionMatrix, 45, aspectRatio , 1.0f, 10.0f);
+		
+		Matrix.setIdentityM(mModelMatrix, 0);
+		Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -3.0f);
+		Matrix.rotateM(mModelMatrix, 0, -60.0f, 1.0f, 0.0f, 0.0f);
+		
+		final float[] temp = new float[16];
+		Matrix.multiplyMM(temp, 0, mProjectionMatrix, 0, mModelMatrix, 0);
+		System.arraycopy(temp, 0, mProjectionMatrix, 0, temp.length);
 	}
 	
 	@Override
