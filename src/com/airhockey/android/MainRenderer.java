@@ -14,6 +14,7 @@ import com.airhockey.android.util.TextResourceReader;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
+import android.opengl.Matrix;
 
 public class MainRenderer implements Renderer
 {	
@@ -21,36 +22,35 @@ public class MainRenderer implements Renderer
 	
 	private float[] mTableVertices = 
 		{
-			// order of coordinates: X Y R G B
+			// order of coordinates: X, Y, Z, W, R, G, B
 			
 			// triangle fan
-			 0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
-			-0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
-			 0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
-			 0.5f,  0.5f, 0.7f, 0.7f, 0.7f,
-			-0.5f,  0.5f, 0.7f, 0.7f, 0.7f,
-			-0.5f, -0.5f, 0.7f, 0.7f, 0.7f,
+			 0.0f,  0.0f, 0.0f, 1.5f, 1.0f, 1.0f, 1.0f,
+			-0.5f, -0.8f, 0.0f, 1.0f, 0.7f, 0.7f, 0.7f,
+			 0.5f, -0.8f, 0.0f, 1.0f, 0.7f, 0.7f, 0.7f,
+			 0.5f,  0.8f, 0.0f, 2.0f, 0.7f, 0.7f, 0.7f,
+			-0.5f,  0.8f, 0.0f, 2.0f, 0.7f, 0.7f, 0.7f,
+			-0.5f, -0.8f, 0.0f, 1.0f, 0.7f, 0.7f, 0.7f,
 			
 			// line 1
-			-0.5f, 0f, 1.0f, 0.0f, 0.0f,
-			 0.5f, 0f, 1.0f, 0.0f, 0.0f,
+			-0.5f, 0.0f, 0.0f, 1.5f, 1.0f, 0.0f, 0.0f,
+			 0.5f, 0.0f, 0.0f, 1.5f, 1.0f, 0.0f, 0.0f,
 			
 			// mallets
-			 0.0f, -0.25f, 0.0f, 0.0f, 1.0f,
-			 0.0f,  0.25f, 1.0f, 0.0f, 0.0f,
+			 0.0f, -0.4f, 0.0f, 1.25f, 0.0f, 0.0f, 1.0f,
+			 0.0f,  0.4f, 0.0f, 1.75f, 1.0f, 0.0f, 0.0f,
 			
 			// puck
-			 0.0f,  0.0f, 1.0f, 1.0f, 0.0f,
+			 0.0f,  0.0f, 0.0f, 1.5f, 1.0f, 1.0f, 0.0f,
 			
 			// border
-			-0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-			 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-			 0.5f,  0.5f, 0.0f, 1.0f, 0.0f,
-			-0.5f,  0.5f, 0.0f, 1.0f, 0.0f
-			 
+			-0.5f, -0.8f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+			 0.5f, -0.8f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+			 0.5f,  0.8f, 0.0f, 2.0f, 0.0f, 1.0f, 0.0f,
+			-0.5f,  0.8f, 0.0f, 2.0f, 0.0f, 1.0f, 0.0f
 		};
 	
-	private static final int POSITION_COMPONENT_COUNT = 2;
+	private static final int POSITION_COMPONENT_COUNT = 4;
 	private static final String ATTRIBUTE_POSITION = "a_Position";
 	private int mAttributePositionLocation;
 	
@@ -58,6 +58,10 @@ public class MainRenderer implements Renderer
 	private static final int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
 	private static final String ATTRIBUTE_COLOR = "a_Color";
 	private int mAttributeColorLocation;
+	
+	private static final String UNIFORM_MATRIX = "u_Matrix";
+	private final float[] mProjectionMatrix = new float[16];
+	private int mUniformMatrixLocation;
 	
 	private final FloatBuffer mVertextData;
 	private final Context mContext;
@@ -93,6 +97,8 @@ public class MainRenderer implements Renderer
 			GLES20.glVertexAttribPointer(mAttributeColorLocation, COLOR_COMPONENT_COUNT,
 					GLES20.GL_FLOAT, false, STRIDE, mVertextData);
 			GLES20.glEnableVertexAttribArray(mAttributeColorLocation);
+			
+			mUniformMatrixLocation = GLES20.glGetUniformLocation(mProgramID, UNIFORM_MATRIX);
 		}
 	}
 	
@@ -125,12 +131,26 @@ public class MainRenderer implements Renderer
 	public void onSurfaceChanged(GL10 gl, int width, int height)
 	{
 		GLES20.glViewport(0, 0, width, height);
+		
+		final float aspectRatio = (width > height) ? 
+				((float) width / (float) height) :
+				((float) height / (float) width);
+		if(width > height) // landscape
+		{
+			Matrix.orthoM(mProjectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f);
+		}
+		else // portrait
+		{
+			Matrix.orthoM(mProjectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
+		}
 	}
 	
 	@Override
 	public void onDrawFrame(GL10 gl)
 	{
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+		
+		GLES20.glUniformMatrix4fv(mUniformMatrixLocation, 1, false, mProjectionMatrix, 0);
 		
 		// draw the table
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 6);
