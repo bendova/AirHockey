@@ -1,11 +1,10 @@
 package com.airhockey.android.util;
 
 import android.opengl.GLES20;
+import static com.airhockey.android.Constants.INVALID_ID;
 
 public class ShaderHelper
 {
-	public static final int INVALID_ID = 0;
-
 	private static final String TAG = "ShaderHelper";
 	
 	public static int compileVertexShader(String shaderCode)
@@ -121,5 +120,20 @@ public class ShaderHelper
 					+ "\nLog: " + GLES20.glGetProgramInfoLog(programObjectID));
 		}
 		return (validationStatus[RESULT_INDEX] != INVALID_ID);
+	}
+	
+	public static int buildProgram(String vertexShaderSource, String fragmentShaderSource)
+	{
+		int vertexShaderID = compileVertexShader(vertexShaderSource);
+		int fragmentShaderID = compileFragmentShader(fragmentShaderSource);
+		
+		int programID = linkProgram(vertexShaderID, fragmentShaderID);
+		
+		if(Logger.ON)
+		{
+			validateProgram(programID);
+		}
+		
+		return programID;
 	}
 }
