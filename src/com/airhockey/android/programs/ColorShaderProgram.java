@@ -9,10 +9,10 @@ public class ColorShaderProgram extends ShaderProgram
 {
 	// Uniform locations
 	private final int mUniformMatrixLocation;
+	private final int mUniformColorLocation;
 	
 	// Attribute locations
 	private final int mAttributePositionLocation;
-	private final int mAttributeColorLocation;
 	
 	public ColorShaderProgram(Context context)
 	{
@@ -20,24 +20,23 @@ public class ColorShaderProgram extends ShaderProgram
 				R.raw.simple_fragment_shader);
 		
 		mUniformMatrixLocation = GLES20.glGetUniformLocation(mProgramID, U_MATRIX);
+		mUniformColorLocation = GLES20.glGetUniformLocation(mProgramID, U_COLOR);
 		
 		mAttributePositionLocation = GLES20.glGetAttribLocation(mProgramID, A_POSITION);
-		mAttributeColorLocation = GLES20.glGetAttribLocation(mProgramID, A_COLOR);
 	}
 	
-	public void setUniforms(float[] matrix)
+	public void setUniformMatrix(float[] matrix)
 	{
 		GLES20.glUniformMatrix4fv(mUniformMatrixLocation, 1, false, matrix, 0);
+	}
+	
+	public void setUniformColor(float red, float green, float blue)
+	{
+		GLES20.glUniform4f(mUniformColorLocation, red, green, blue, 1f);
 	}
 	
 	public int getPositionAttributeLocation()
 	{
 		return mAttributePositionLocation;
 	}
-	
-	public int getColorAttributeLocation()
-	{
-		return mAttributeColorLocation;
-	}
-	
 }

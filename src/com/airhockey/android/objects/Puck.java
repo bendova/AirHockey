@@ -2,45 +2,39 @@ package com.airhockey.android.objects;
 
 import java.util.List;
 
-import android.opengl.GLES20;
-
-import com.airhockey.android.Constants;
 import com.airhockey.android.data.VertexArray;
 import com.airhockey.android.objects.ObjectBuilder.DrawCommand;
 import com.airhockey.android.objects.ObjectBuilder.GeneratedData;
 import com.airhockey.android.programs.ColorShaderProgram;
+import com.airhockey.android.util.Geometry.Cylinder;
 import com.airhockey.android.util.Geometry.Point;
 
-public class Mallet
+public class Puck
 {
 	private static final int POSITION_COMPONENT_COUNT = 3;
 	
-	private final float mRadius;
-	private final float mHeight;
+	public final float mRadius;
+	public final float mHeight;
 	
 	private final VertexArray mVertexArray;
 	private final List<DrawCommand> mDrawCommands;
 	
-	public Mallet(float radius, float height, int numPointsAroundMallet)
+	public Puck(float radius, float height, int numPointsAroundPuck)
 	{
 		mRadius = radius;
 		mHeight = height;
 		
-		Point center = new Point(0f, 0f, 0f);
-		GeneratedData generatedData = ObjectBuilder.createMallet(center, 
-				mRadius, mHeight, numPointsAroundMallet);
+		GeneratedData generatedData = ObjectBuilder.createPuck(
+				new Cylinder(new Point(0f, 0f, 0f), mRadius, mHeight), numPointsAroundPuck);
 		
-		mVertexArray = new VertexArray(generatedData.getVertexArray());
 		mDrawCommands = generatedData.getDrawCommands();
+		mVertexArray = new VertexArray(generatedData.getVertexArray());
 	}
 	
 	public void bindData(ColorShaderProgram colorProgram)
 	{
-		mVertexArray.setVertexAttribPointer(
-				0,
-				colorProgram.getPositionAttributeLocation(),
-				POSITION_COMPONENT_COUNT,
-				0);
+		mVertexArray.setVertexAttribPointer(0, colorProgram.getPositionAttributeLocation(), 
+				POSITION_COMPONENT_COUNT, 0);
 	}
 	
 	public void draw()
