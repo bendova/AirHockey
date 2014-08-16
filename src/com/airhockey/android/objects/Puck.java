@@ -49,4 +49,9 @@ public class Puck
 	{
 		return mHeight;
 	}
+	
+	public float getRadius()
+	{
+		return mRadius;
+	}
 }

@@ -8,9 +8,9 @@ public class Geometry
 	
 	public static class Point
 	{
-		public final float mX;
-		public final float mY;
-		public final float mZ;
+		public float mX;
+		public float mY;
+		public float mZ;
 		
 		public Point(float x, float y, float z)
 		{
@@ -23,15 +23,26 @@ public class Geometry
 		{
 			return mX;
 		}
+		public void setX(Float newX)
+		{
+			mX = newX;
+		}
 		public float getY()
 		{
 			return mY;
+		}
+		public void setY(Float newY)
+		{
+			mY = newY;
 		}
 		public float getZ()
 		{
 			return mZ;
 		}
-		
+		public void setZ(Float newZ)
+		{
+			mZ = newZ;
+		}
 		public Point translate(Vector v)
 		{
 			return new Point(mX + v.getX(),
@@ -53,9 +64,9 @@ public class Geometry
 	
 	public static class Vector
 	{
-		public final float mX;
-		public final float mY;
-		public final float mZ;
+		public float mX;
+		public float mY;
+		public float mZ;
 		
 		public Vector(float x, float y, float z)
 		{
@@ -69,14 +80,29 @@ public class Geometry
 			return mX;
 		}
 		
+		public void setX(float newX)
+		{
+			mX = newX;
+		}
+		
 		public float getY()
 		{
 			return mY;
 		}
 		
+		public void setY(float newY)
+		{
+			mY = newY;
+		}
+		
 		public float getZ()
 		{
 			return mZ;
+		}
+		
+		public void setZ(float newZ)
+		{
+			mZ = newZ;
 		}
 		
 		public float dotProduct(Vector other)
@@ -261,5 +287,10 @@ public class Geometry
 		
 		Point intersectionPoint = rayStartPoint.translate(rayDirectionVector.scale(scaleFactor));
 		return intersectionPoint;
+	}
+	
+	public static float clamp(float value, float min, float max)
+	{
+		return Math.min(Math.max(value, min), max);
 	}
 }

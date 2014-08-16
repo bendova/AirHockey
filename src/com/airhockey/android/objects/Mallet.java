@@ -55,4 +55,9 @@ public class Mallet
 	{
 		return mHeight;
 	}
+	
+	public float getRadius()
+	{
+		return mRadius;
+	}
 }
